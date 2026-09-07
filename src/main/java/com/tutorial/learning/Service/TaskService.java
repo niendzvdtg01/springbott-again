@@ -6,9 +6,13 @@ import org.springframework.stereotype.Service;
 
 import com.tutorial.learning.DTO.CreateTaskRequest;
 import com.tutorial.learning.DTO.TaskResponse;
+import com.tutorial.learning.DTO.UpdateTaskStatus;
 import com.tutorial.learning.Entity.TaskEntity;
 import com.tutorial.learning.Enum.TaskStatus;
 import com.tutorial.learning.Repository.TaskRepository;
+import com.tutorial.learning.exception.TaskNotFoundException;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class TaskService {
@@ -32,5 +36,11 @@ public class TaskService {
     
     public Optional<TaskResponse> findById(long id){
         return taskRepository.findById(id).map(task -> new TaskResponse(task.getId(), task.getTitle(), task.getStatus()));
+    }
+    @Transactional 
+    public TaskResponse updateTask(long id, UpdateTaskStatus request){
+        TaskEntity task = taskRepository.findById(id).orElseThrow(()-> new TaskNotFoundException(id));
+        task.changeStatusTo(request.status());
+        return new TaskResponse(task.getId(), task.getTitle(), task.getStatus());
     }
 }

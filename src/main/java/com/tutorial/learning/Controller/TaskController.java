@@ -6,6 +6,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.tutorial.learning.DTO.CreateTaskRequest;
 import com.tutorial.learning.DTO.TaskResponse;
+import com.tutorial.learning.DTO.UpdateTaskStatus;
 import com.tutorial.learning.Enum.TaskStatus;
 import com.tutorial.learning.Service.TaskService;
 
@@ -17,6 +18,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PutMapping;
+
 
 
 
@@ -54,6 +57,11 @@ public class TaskController {
     @GetMapping("/test/{id}")
     public ResponseEntity<TaskResponse> findById(@PathVariable long id) {
         return taskService.findById(id).map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("test/{id}")
+    public TaskResponse putSatus(@PathVariable long id,@Valid  @RequestBody UpdateTaskStatus request) {
+        return taskService.updateTask(id, request);
     }
     
 }

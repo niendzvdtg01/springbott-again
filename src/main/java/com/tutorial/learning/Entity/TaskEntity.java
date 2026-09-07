@@ -3,6 +3,7 @@ package com.tutorial.learning.Entity;
 import java.time.Instant;
 
 import com.tutorial.learning.Enum.TaskStatus;
+import com.tutorial.learning.exception.InvalidTaskTransitionException;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -86,4 +87,20 @@ public class TaskEntity {
         this.createdAt = createdAt;
     }
     
+    public void changeStatusTo(TaskStatus nextStatus) {
+        if (nextStatus == status) {
+            return; 
+        }
+
+        boolean validTransition = (status == TaskStatus.TODO && nextStatus == TaskStatus.IN_PROGRESS) || (status == TaskStatus.IN_PROGRESS && nextStatus == TaskStatus.DONE);
+
+        if (!validTransition) {
+            throw new InvalidTaskTransitionException(
+                status,
+                nextStatus
+            );
+        }
+
+        this.status = nextStatus;
+    }
 }
