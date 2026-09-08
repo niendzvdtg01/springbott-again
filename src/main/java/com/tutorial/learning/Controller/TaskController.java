@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 public class TaskController {
     private final TaskService taskService;
 
-    TaskController(TaskService taskService) {
+    public TaskController(TaskService taskService) {
         this.taskService = taskService;
     }
 
