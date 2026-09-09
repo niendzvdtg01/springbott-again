@@ -22,7 +22,7 @@ public class UserEntity {
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(nullable =false, length = 20)
     private UserRole role;
 
     public UserEntity() {
