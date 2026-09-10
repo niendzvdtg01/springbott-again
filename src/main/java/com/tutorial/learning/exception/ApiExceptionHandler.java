@@ -20,24 +20,20 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler{
     }
 
     @ExceptionHandler(InvalidTaskTransitionException.class)
-    ProblemDetail handleInvalidTransition(
-        InvalidTaskTransitionException exception
-    ) {
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
-            HttpStatus.CONFLICT,
-            exception.getMessage()
-        );
+    ProblemDetail handleInvalidTransition(InvalidTaskTransitionException exception) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT,exception.getMessage());
 
         problem.setTitle("Invalid task transition");
-        problem.setType(URI.create(
-            "https://api.taskflow.dev/problems/"
-                + "invalid-task-transition"
-        ));
-        problem.setProperty(
-            "code",
-            "INVALID_TASK_TRANSITION"
-        );
+        problem.setType(URI.create("https://api.taskflow.dev/problems/" + "invalid-task-transition"));
+        problem.setProperty("code","INVALID_TASK_TRANSITION");
 
+        return problem;
+    }
+    @ExceptionHandler(EmailAlreadyUsedException.class)
+    ProblemDetail handleEmailAlreadyUsedException(){
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT,"An account already uses this email");
+        problem.setTitle("Email Already exists");
+        problem.setProperty("code", "EMAIL_ALREADY_USED");
         return problem;
     }
 }

@@ -7,12 +7,15 @@ import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.assertj.core.api.Assertions.assertThat;
 import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -27,11 +30,13 @@ import com.tutorial.learning.exception.TaskNotFoundException;
 public class TaskControllerContractTest {
     private TaskService taskService;
     private RestTestClient client;
+    private PasswordEncoder passwordEncoder;
+
 
     @BeforeEach 
     void setUp(){
         taskService = mock(TaskService.class);
-
+        passwordEncoder = new  Argon2PasswordEncoder(16, 32, 1, 19456, 2);
         TaskController controller = new TaskController(taskService);
 
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller).setControllerAdvice(new ApiExceptionHandler()).build();
@@ -81,4 +86,13 @@ public class TaskControllerContractTest {
             .isEqualTo("/api/v1/tasks/test/999");
 
     }
+    @Test
+    void encodedPasswordShouldMatchRawPassword() {
+        String raw = "A-long-demo-password-2026!";
+        String encoded = passwordEncoder.encode(raw);
+
+        assertThat(encoded).isNotEqualTo(raw);
+        assertThat(passwordEncoder.matches(raw, encoded)).isTrue();
+        assertThat(passwordEncoder.matches("wrong-password",encoded)).isFalse();
+}
 }
