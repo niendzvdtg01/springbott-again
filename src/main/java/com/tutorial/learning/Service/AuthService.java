@@ -10,6 +10,7 @@ import com.tutorial.learning.DTO.UserResponse;
 import com.tutorial.learning.Entity.UserEntity;
 import com.tutorial.learning.Enum.UserRole;
 import com.tutorial.learning.Repository.UserRepository;
+import com.tutorial.learning.exception.EmailAlreadyUsedException;
 
 import jakarta.transaction.Transactional;
 
@@ -28,7 +29,7 @@ public class AuthService {
     public UserResponse register(RegisterRequest request){
         String nomaliziedEmail = request.email().trim().toLowerCase(Locale.ROOT);
         if(userRepository.existsByEmail(nomaliziedEmail)){
-            throw new RuntimeException("Error!!!!");
+            throw new EmailAlreadyUsedException();
         }
         UserEntity user = new UserEntity();
         user.setEmail(nomaliziedEmail);
