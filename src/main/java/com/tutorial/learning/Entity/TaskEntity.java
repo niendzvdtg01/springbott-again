@@ -3,6 +3,7 @@ package com.tutorial.learning.Entity;
 import java.time.Instant;
 
 import com.tutorial.learning.Enum.TaskStatus;
+import com.tutorial.learning.exception.InvalidTaskTransitionException;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -29,19 +30,20 @@ public class TaskEntity {
     private TaskStatus status;
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
-    protected TaskEntity(){
+
+    protected TaskEntity() {
 
     }
 
-    public TaskEntity(String title, String description, TaskStatus status){
+    public TaskEntity(String title, String description, TaskStatus status) {
         this.title = title;
         this.description = description;
         this.status = status;
     }
 
     @PrePersist
-    void beforeInsert(){
-        if(createdAt == null){
+    void beforeInsert() {
+        if (createdAt == null) {
             this.createdAt = Instant.now();
         }
     }
@@ -85,5 +87,18 @@ public class TaskEntity {
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
     }
-    
+
+    // check valid status and change status if it's valid
+    public void changesStatusTo(TaskStatus nextStatus) {
+        if (nextStatus == status) {
+            return;
+        }
+        boolean validTransaction = (status == TaskStatus.TODO && nextStatus == TaskStatus.IN_PROGRESS)
+                || (status == TaskStatus.IN_PROGRESS && nextStatus == TaskStatus.DONE);
+        if (!validTransaction) {
+            throw new InvalidTaskTransitionException(status, nextStatus);
+        }
+        this.status = nextStatus;
+    }
+
 }
