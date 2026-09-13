@@ -88,17 +88,20 @@ public class TaskEntity {
         this.createdAt = createdAt;
     }
 
-    // check valid status and change status if it's valid
-    public void changesStatusTo(TaskStatus nextStatus) {
+    public void changeStatusTo(TaskStatus nextStatus) {
         if (nextStatus == status) {
             return;
         }
-        boolean validTransaction = (status == TaskStatus.TODO && nextStatus == TaskStatus.IN_PROGRESS)
+
+        boolean validTransition = (status == TaskStatus.TODO && nextStatus == TaskStatus.IN_PROGRESS)
                 || (status == TaskStatus.IN_PROGRESS && nextStatus == TaskStatus.DONE);
-        if (!validTransaction) {
-            throw new InvalidTaskTransitionException(status, nextStatus);
+
+        if (!validTransition) {
+            throw new InvalidTaskTransitionException(
+                    status,
+                    nextStatus);
         }
+
         this.status = nextStatus;
     }
-
 }
