@@ -14,21 +14,20 @@ import com.tutorial.learning.exception.EmailAlreadyUsedException;
 
 import jakarta.transaction.Transactional;
 
-@Service 
+@Service
 public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder encoder;
-
 
     public AuthService(UserRepository userRepository, PasswordEncoder encoder) {
         this.userRepository = userRepository;
         this.encoder = encoder;
     }
 
-    @Transactional 
-    public UserResponse register(RegisterRequest request){
+    @Transactional
+    public UserResponse register(RegisterRequest request) {
         String nomaliziedEmail = request.email().trim().toLowerCase(Locale.ROOT);
-        if(userRepository.existsByEmail(nomaliziedEmail)){
+        if (userRepository.existsByEmail(nomaliziedEmail)) {
             throw new EmailAlreadyUsedException();
         }
         UserEntity user = new UserEntity();
@@ -37,5 +36,17 @@ public class AuthService {
         user.setRole(UserRole.USER);
         userRepository.save(user);
         return new UserResponse(user.getId(), user.getEmail(), user.getRole().name());
+    }
+
+    public UserEntity authenticate(RegisterRequest request) {
+        String nomaliziedEmail = request.email().trim().toLowerCase(Locale.ROOT);
+        UserEntity user = userRepository.findByEmail(nomaliziedEmail)
+                .orElseThrow(() -> new EmailAlreadyUsedException());
+
+        if (!encoder.matches(request.password(), user.getPasswordHash())) {
+            throw new RuntimeException("Incorect password");
+        }
+
+        return user;
     }
 }
