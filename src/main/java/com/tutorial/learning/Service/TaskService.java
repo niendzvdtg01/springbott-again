@@ -2,9 +2,14 @@ package com.tutorial.learning.Service;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.tutorial.learning.DTO.CreateTaskRequest;
+import com.tutorial.learning.DTO.PageResponse;
 import com.tutorial.learning.DTO.TaskResponse;
 import com.tutorial.learning.DTO.UpdateTaskStatus;
 import com.tutorial.learning.Entity.TaskEntity;
@@ -52,11 +57,17 @@ public class TaskService {
         return new TaskResponse(task.getId(), task.getTitle(), task.getStatus());
     }
     @Transactional 
-    public List<TaskResponse> findAll(long userId){
-        return taskRepository.findAllByOwnerIdOrderByIdDesc(userId)
-            .stream()
-            .map(task -> new TaskResponse(task.getId(), task.getTitle(), task.getStatus()))
-            .toList();
+    public PageResponse<TaskResponse> findAll(long userId, TaskStatus status, int page, int size){
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Order.desc("id")));
+        Page<TaskEntity> tasks;
+        if(status == null){
+            tasks = taskRepository.findAllByOwnerId(userId, pageable);
+        }else{
+            tasks = taskRepository.findAllByOwnerIdAndStatus(userId, status, pageable);
+        }
+
+        Page<TaskResponse> responses = tasks.map(task -> new TaskResponse(task.getId(), task.getTitle(), task.getStatus()));
+        return PageResponse.from(responses); 
     }
 
 }

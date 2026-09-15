@@ -1,20 +1,22 @@
 package com.tutorial.learning.Controller;
 
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.tutorial.learning.DTO.CreateTaskRequest;
+import com.tutorial.learning.DTO.PageResponse;
 import com.tutorial.learning.DTO.TaskResponse;
 import com.tutorial.learning.DTO.UpdateTaskStatus;
 import com.tutorial.learning.Enum.TaskStatus;
 import com.tutorial.learning.Service.TaskService;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 
 import java.net.URI;
-import java.util.List;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -59,8 +61,18 @@ public class TaskController {
         return taskService.findById(id, getUserIdByAuth(authentication));
     }
     @GetMapping("/test/all")
-    public List<TaskResponse> findAll(Authentication authentication) {
-        return taskService.findAll(getUserIdByAuth(authentication));
+    public PageResponse<TaskResponse> findAll(@RequestParam(defaultValue = "0")
+    @Min(value = 0, message = "page must be at least 0")
+    int page,
+    @RequestParam(defaultValue = "10")
+    @Min(value = 1, message = "size must be at least 1")
+    @Max(value = 100, message = "size must not exceed 100")
+    int size,
+    @RequestParam(required = false)
+    TaskStatus status,
+
+    Authentication authentication) {
+        return taskService.findAll(getUserIdByAuth(authentication), status, page, size);
     }
 
     @PutMapping("test/{id}")
