@@ -28,9 +28,9 @@ public class jwtUtils {
                 .compact();
     }
 
-    public static Integer extractUser(String token) {
+    public static Long extractUser(String token) {
         Claims claims = parser(token);
-        return claims.get("id", Integer.class);
+        return claims.get("id", Long.class);
     }
 
     public static boolean validateToken(String token) {
@@ -39,7 +39,7 @@ public class jwtUtils {
     }
 
     public static UsernamePasswordAuthenticationToken getAuthentication(String token) {
-        Integer userId = extractUser(token);
+        Long userId = extractUser(token);
         List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
         return new UsernamePasswordAuthenticationToken(userId, null, authorities);
     }

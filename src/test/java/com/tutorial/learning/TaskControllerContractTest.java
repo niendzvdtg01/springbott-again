@@ -46,7 +46,7 @@ public class TaskControllerContractTest {
     }
     @Test 
     void shouldUpdateTaskStatus(){
-        given(taskService.updateTask(eq(1L), any(UpdateTaskStatus.class))).willReturn(new TaskResponse(1L,
+        given(taskService.updateTask(eq(1L), any(UpdateTaskStatus.class), eq(1L))).willReturn(new TaskResponse(1L,
                 "Write tests",
                 TaskStatus.IN_PROGRESS));
          client.put()
@@ -64,11 +64,11 @@ public class TaskControllerContractTest {
             .jsonPath("$.status")
                 .isEqualTo("IN_PROGRESS");
 
-        then(taskService).should().updateTask(eq(1L), any(UpdateTaskStatus.class));
+        then(taskService).should().updateTask(eq(1L), any(UpdateTaskStatus.class), eq(1L));
     }
     @Test 
     void shouldReturnProblemDetailWhenTaskDoesNotExists(){
-        given(taskService.updateTask(eq(999L), any(UpdateTaskStatus.class))).willThrow(new TaskNotFoundException(999L));
+        given(taskService.updateTask(eq(999L), any(UpdateTaskStatus.class), eq(1L))).willThrow(new TaskNotFoundException(999L));
         client.put().uri("/api/v1/tasks/test/999")
         .contentType(MediaType.APPLICATION_JSON)
         .body(Map.of("status", TaskStatus.IN_PROGRESS))

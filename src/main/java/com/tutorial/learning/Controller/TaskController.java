@@ -13,15 +13,15 @@ import com.tutorial.learning.Service.TaskService;
 import jakarta.validation.Valid;
 
 import java.net.URI;
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
-
-
-
 
 
 @RestController
@@ -47,21 +47,29 @@ public class TaskController {
     }
 
     @PostMapping("/test")
-    public ResponseEntity<TaskResponse> createTask(@Valid @RequestBody CreateTaskRequest task) {
-        TaskResponse created = taskService.create(task);
+    public ResponseEntity<TaskResponse> createTask(@Valid @RequestBody CreateTaskRequest task, Authentication authentication) {
+        TaskResponse created = taskService.create(task, getUserIdByAuth(authentication));
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(created.id()).toUri();
 
         return ResponseEntity.created(location).body(created);
     }
 
     @GetMapping("/test/{id}")
-    public ResponseEntity<TaskResponse> findById(@PathVariable long id) {
-        return taskService.findById(id).map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    public TaskResponse findById(@PathVariable long id, Authentication authentication) {
+        return taskService.findById(id, getUserIdByAuth(authentication));
+    }
+    @GetMapping("/test/all")
+    public List<TaskResponse> findAll(Authentication authentication) {
+        return taskService.findAll(getUserIdByAuth(authentication));
     }
 
     @PutMapping("test/{id}")
-    public TaskResponse putSatus(@PathVariable long id,@Valid  @RequestBody UpdateTaskStatus request) {
-        return taskService.updateTask(id, request);
+    public TaskResponse putSatus(@PathVariable long id,@Valid  @RequestBody UpdateTaskStatus request, Authentication authentication) {
+        return taskService.updateTask(id, request, getUserIdByAuth(authentication));
+    }
+
+    public Long getUserIdByAuth(Authentication authentication){
+        return (Long)authentication.getPrincipal();
     }
     
 }

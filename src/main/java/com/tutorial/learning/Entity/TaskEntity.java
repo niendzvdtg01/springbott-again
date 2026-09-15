@@ -9,9 +9,12 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
@@ -30,15 +33,19 @@ public class TaskEntity {
     private TaskStatus status;
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "owner_id", nullable = false)
+    private UserEntity owner;
 
     protected TaskEntity() {
 
     }
 
-    public TaskEntity(String title, String description, TaskStatus status) {
+    public TaskEntity(String title, String description, TaskStatus status, UserEntity owner) {
         this.title = title;
         this.description = description;
         this.status = status;
+        this.owner = owner;
     }
 
     @PrePersist
@@ -87,6 +94,15 @@ public class TaskEntity {
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
     }
+
+    public UserEntity getOwner() {
+        return this.owner;
+    }
+
+    public void setOwner(UserEntity owner) {
+        this.owner = owner;
+    }
+
 
     public void changeStatusTo(TaskStatus nextStatus) {
         if (nextStatus == status) {
