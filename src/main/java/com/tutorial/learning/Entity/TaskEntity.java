@@ -2,6 +2,8 @@ package com.tutorial.learning.Entity;
 
 import java.time.Instant;
 
+import org.springframework.data.annotation.Version;
+
 import com.tutorial.learning.Enum.TaskStatus;
 import com.tutorial.learning.exception.InvalidTaskTransitionException;
 
@@ -36,6 +38,10 @@ public class TaskEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "owner_id", nullable = false)
     private UserEntity owner;
+    @Version 
+    @Column(nullable = false)
+    private Long version;
+
 
     protected TaskEntity() {
 
@@ -101,6 +107,10 @@ public class TaskEntity {
 
     public void setOwner(UserEntity owner) {
         this.owner = owner;
+    }
+
+    public Long getVersion(){
+        return this.version;
     }
 
 

@@ -8,5 +8,6 @@ import com.tutorial.learning.Enum.TaskStatus;
  public record TaskResponse(
     long id, 
     String title, 
-    TaskStatus status
+    TaskStatus status,
+    long version
  ) {}

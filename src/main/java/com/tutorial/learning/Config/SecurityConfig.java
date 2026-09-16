@@ -44,7 +44,7 @@ public class SecurityConfig {
                         .logoutSuccessHandler((request, response, authentication) -> {
                             Cookie cookie = new Cookie("access_cookie", null);
                             cookie.setHttpOnly(true);
-                            cookie.setSecure(false); // true nếu HTTPS
+                            cookie.setSecure(false); 
                             cookie.setPath("/");
                             cookie.setMaxAge(0);
                             response.addCookie(cookie);

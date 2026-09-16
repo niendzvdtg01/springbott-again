@@ -48,7 +48,7 @@ public class TaskControllerContractTest {
     void shouldUpdateTaskStatus(){
         given(taskService.updateTask(eq(1L), any(UpdateTaskStatus.class), eq(1L))).willReturn(new TaskResponse(1L,
                 "Write tests",
-                TaskStatus.IN_PROGRESS));
+                TaskStatus.IN_PROGRESS, 0));
          client.put()
             .uri("/api/v1/tasks/test/1")
             .contentType(MediaType.APPLICATION_JSON)

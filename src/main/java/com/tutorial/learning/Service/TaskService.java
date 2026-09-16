@@ -1,6 +1,6 @@
 package com.tutorial.learning.Service;
 
-import java.util.List;
+import java.util.Objects;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,6 +17,7 @@ import com.tutorial.learning.Entity.UserEntity;
 import com.tutorial.learning.Enum.TaskStatus;
 import com.tutorial.learning.Repository.TaskRepository;
 import com.tutorial.learning.Repository.UserRepository;
+import com.tutorial.learning.exception.StaleTaskVerionsException;
 import com.tutorial.learning.exception.TaskNotFoundException;
 
 import jakarta.transaction.Transactional;
@@ -39,22 +40,22 @@ public class TaskService {
             user
         );
         TaskEntity saved = taskRepository.save(task);
-        return new TaskResponse(
-            saved.getId(),
-            saved.getTitle(),
-            saved.getStatus()
-        );
+        return toResponse(saved);
     }
     @Transactional
     public TaskResponse findById(long id, long userId){
         TaskEntity task = taskRepository.findByIdAndOwnerId(id, userId).orElseThrow(()->new TaskNotFoundException(id));
-        return new TaskResponse(task.getId(), task.getTitle(), task.getStatus());
+        return toResponse(task);
     }   
     @Transactional 
     public TaskResponse updateTask(long id, UpdateTaskStatus request, long userId){
         TaskEntity task = taskRepository.findByIdAndOwnerId(id, userId).orElseThrow(()-> new TaskNotFoundException(id));
+        if(!Objects.equals(task.getVersion(), request.version())){
+            throw new StaleTaskVerionsException(id, request.version(), task.getVersion());
+        }
         task.changeStatusTo(request.status());
-        return new TaskResponse(task.getId(), task.getTitle(), task.getStatus());
+        taskRepository.flush();
+        return toResponse(task);
     }
     @Transactional 
     public PageResponse<TaskResponse> findAll(long userId, TaskStatus status, int page, int size){
@@ -66,8 +67,13 @@ public class TaskService {
             tasks = taskRepository.findAllByOwnerIdAndStatus(userId, status, pageable);
         }
 
-        Page<TaskResponse> responses = tasks.map(task -> new TaskResponse(task.getId(), task.getTitle(), task.getStatus()));
+        Page<TaskResponse> responses = tasks.map(this::toResponse);
         return PageResponse.from(responses); 
+    }
+
+
+    private TaskResponse toResponse(TaskEntity taskEntity){
+        return new TaskResponse(taskEntity.getId(), taskEntity.getTitle(), taskEntity.getStatus(), taskEntity.getVersion());
     }
 
 }
