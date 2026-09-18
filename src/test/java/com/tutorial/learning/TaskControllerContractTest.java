@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -39,7 +40,12 @@ public class TaskControllerContractTest {
         passwordEncoder = new  Argon2PasswordEncoder(16, 32, 1, 19456, 2);
         TaskController controller = new TaskController(taskService);
 
-        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller).setControllerAdvice(new ApiExceptionHandler()).build();
+        TestingAuthenticationToken authentication = new TestingAuthenticationToken(1L, null, "ROLE_USER");
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
+            .setControllerAdvice(new ApiExceptionHandler())
+            .defaultRequest(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/")
+                .principal(authentication))
+            .build();
 
         client = RestTestClient.bindTo(mockMvc).build();
 
@@ -52,7 +58,7 @@ public class TaskControllerContractTest {
          client.put()
             .uri("/api/v1/tasks/test/1")
             .contentType(MediaType.APPLICATION_JSON)
-            .body(Map.of("status", TaskStatus.IN_PROGRESS))
+            .body(Map.of("status", TaskStatus.IN_PROGRESS, "version", 0))
             .exchange()
             .expectStatus().isOk()
             .expectHeader()
@@ -71,7 +77,7 @@ public class TaskControllerContractTest {
         given(taskService.updateTask(eq(999L), any(UpdateTaskStatus.class), eq(1L))).willThrow(new TaskNotFoundException(999L));
         client.put().uri("/api/v1/tasks/test/999")
         .contentType(MediaType.APPLICATION_JSON)
-        .body(Map.of("status", TaskStatus.IN_PROGRESS))
+        .body(Map.of("status", TaskStatus.IN_PROGRESS, "version", 0))
         .exchange()
         .expectStatus().isNotFound()
         .expectHeader()
