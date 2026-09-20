@@ -3,7 +3,7 @@ spring:
     enabled: true
     validate-migration-naming: true
   datasource:
-    url: jdbc:mysql://localhost:3306/student_managing?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3307/student_managing?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: root
     password: 1234
     driver-class-name: com.mysql.cj.jdbc.Driver
