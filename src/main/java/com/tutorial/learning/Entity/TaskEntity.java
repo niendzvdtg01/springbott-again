@@ -2,8 +2,6 @@ package com.tutorial.learning.Entity;
 
 import java.time.Instant;
 
-import org.springframework.data.annotation.Version;
-
 import com.tutorial.learning.Enum.TaskStatus;
 import com.tutorial.learning.exception.InvalidTaskTransitionException;
 
@@ -19,6 +17,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 
 @Entity
 @Table(name = "tasks")
