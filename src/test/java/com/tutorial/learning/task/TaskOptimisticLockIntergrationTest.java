@@ -30,49 +30,49 @@ import com.tutorial.learning.Enum.UserRole;
 import com.tutorial.learning.Repository.TaskRepository;
 import com.tutorial.learning.Repository.UserRepository;
 
-
 /**
  * TaskOptimisticLockIntergrationTest
  */
-@SpringBootTest 
-@Testcontainers 
+@SpringBootTest
+@Testcontainers
 public class TaskOptimisticLockIntergrationTest {
-    @Container 
-    @ServiceConnection 
+    @Container
+    @ServiceConnection
     static final MySQLContainer MYSQL = new MySQLContainer("mysql:8.4");
 
-    @Autowired 
+    @Autowired
     private TaskRepository taskRepository;
-    @Autowired 
+    @Autowired
     private UserRepository userRepository;
-    @Autowired 
+    @Autowired
     private PlatformTransactionManager platformTransactionManager;
 
     private long taskId;
 
-    @BeforeEach 
-    void setUp(){
+    @BeforeEach
+    void setUp() {
         taskRepository.deleteAll();
         userRepository.deleteAll();
 
-        UserEntity owner = userRepository.save(new UserEntity(1, "nien@example.com", "pasword-test", UserRole.USER));
+        UserEntity owner = userRepository.save(new UserEntity("nien@example.com", "pasword-test", UserRole.USER));
 
-        TaskEntity taskEntity = taskRepository.saveAndFlush(new TaskEntity("test", "test", com.tutorial.learning.Enum.TaskStatus.TODO, owner));
+        TaskEntity taskEntity = taskRepository
+                .saveAndFlush(new TaskEntity("test", "test", com.tutorial.learning.Enum.TaskStatus.TODO, owner));
         taskId = taskEntity.getId();
     }
 
-    @Test 
-    void shouldAllowOnlyOneConcurrentUpdate() throws Exception{
+    @Test
+    void shouldAllowOnlyOneConcurrentUpdate() throws Exception {
         CyclicBarrier barrier = new CyclicBarrier(2);
         AtomicInteger success = new AtomicInteger();
         AtomicInteger conflicts = new AtomicInteger();
 
         ExecutorService executor = Executors.newFixedThreadPool(2);
 
-        Runnable updateTask = ()->{
+        Runnable updateTask = () -> {
             TransactionTemplate transaction = new TransactionTemplate(platformTransactionManager);
-            try{
-                transaction.executeWithoutResult(ignored->{
+            try {
+                transaction.executeWithoutResult(ignored -> {
                     TaskEntity taskEntity = taskRepository.findById(taskId).orElseThrow();
 
                     await(barrier);
@@ -82,18 +82,18 @@ public class TaskOptimisticLockIntergrationTest {
                 });
 
                 success.incrementAndGet();
-            }catch(OptimisticLockingFailureException exception){
+            } catch (OptimisticLockingFailureException exception) {
                 conflicts.incrementAndGet();
             }
         };
 
-        try{
+        try {
             Future<?> first = executor.submit(updateTask);
             Future<?> second = executor.submit(updateTask);
 
             first.get(10, TimeUnit.SECONDS);
             second.get(10, TimeUnit.SECONDS);
-        }finally{
+        } finally {
             executor.shutdownNow();
         }
 
@@ -107,15 +107,15 @@ public class TaskOptimisticLockIntergrationTest {
         assertThat(stored.getVersion()).isEqualTo(1L);
     }
 
-    private static void  await(CyclicBarrier barrier){
-        try{
+    private static void await(CyclicBarrier barrier) {
+        try {
             barrier.await(5, TimeUnit.SECONDS);
-        }catch(InterruptedException ex){
+        } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
             throw new IllegalStateException(ex);
-        }catch(BrokenBarrierException | TimeoutException exception){
+        } catch (BrokenBarrierException | TimeoutException exception) {
             throw new IllegalStateException(exception);
         }
     }
-    
+
 }

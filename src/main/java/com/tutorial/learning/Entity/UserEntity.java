@@ -11,10 +11,10 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-@Entity 
+@Entity
 @Table(name = "users")
 public class UserEntity {
-    @Id 
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     @Column(nullable = false, length = 254, unique = true)
@@ -22,14 +22,13 @@ public class UserEntity {
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
     @Enumerated(EnumType.STRING)
-    @Column(nullable =false, length = 20)
+    @Column(nullable = false, length = 20)
     private UserRole role;
 
     public UserEntity() {
     }
 
-    public UserEntity(long id, String email, String passwordHash, UserRole role) {
-        this.id = id;
+    public UserEntity(String email, String passwordHash, UserRole role) {
         this.email = email;
         this.passwordHash = passwordHash;
         this.role = role;
