@@ -20,15 +20,19 @@ import com.tutorial.learning.Repository.UserRepository;
 import com.tutorial.learning.exception.StaleTaskVerionsException;
 import com.tutorial.learning.exception.TaskNotFoundException;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.transaction.Transactional;
 
 @Service
 public class TaskService {
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
-    public TaskService(TaskRepository taskRepository, UserRepository userRepository){
+    private final Counter taskCreated;
+    public TaskService(TaskRepository taskRepository, UserRepository userRepository, MeterRegistry meterRegistry){
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
+        this.taskCreated = Counter.builder("taskflow.tasks.created").description("Number of tasks created").register(meterRegistry);
     }
     public TaskResponse create(CreateTaskRequest createTaskRequest, Long userId){
 
@@ -40,6 +44,7 @@ public class TaskService {
             user
         );
         TaskEntity saved = taskRepository.save(task);
+        taskCreated.increment();
         return toResponse(saved);
     }
     @Transactional

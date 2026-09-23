@@ -33,7 +33,7 @@ public class AuthService {
         UserEntity user = new UserEntity();
         user.setEmail(nomaliziedEmail);
         user.setPasswordHash(encoder.encode(request.password()));
-        user.setRole(UserRole.USER);
+        user.setRole(request.role() == null ? UserRole.USER : UserRole.ADMIN);
         userRepository.save(user);
         return new UserResponse(user.getId(), user.getEmail(), user.getRole().name());
     }

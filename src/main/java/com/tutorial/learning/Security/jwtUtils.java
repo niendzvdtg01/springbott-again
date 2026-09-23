@@ -21,6 +21,7 @@ public class jwtUtils {
         return Jwts.builder()
                 .subject(user.getEmail())
                 .claim("id", user.getId())
+                .claim("role", user.getRole().toString())
                 .issuer("Nienvv")
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
@@ -40,7 +41,8 @@ public class jwtUtils {
 
     public static UsernamePasswordAuthenticationToken getAuthentication(String token) {
         Long userId = extractUser(token);
-        List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        String role = parser(token).get("role", String.class);
+        List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
         return new UsernamePasswordAuthenticationToken(userId, null, authorities);
     }
 
