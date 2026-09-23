@@ -13,6 +13,8 @@ RUN ./mvnw -B -DskipTests package
 
 FROM eclipse-temurin:21-jre-jammy AS runtime
 
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+
 RUN groupadd --system spring && useradd --system --gid spring spring
 
 WORKDIR /app

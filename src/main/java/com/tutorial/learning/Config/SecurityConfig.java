@@ -34,7 +34,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**", "/api/v1/auth/register")
                         .permitAll()
-                        .requestMatchers("/actuator/health", "/actuator/health/**", "livez", "/readz")
+                        .requestMatchers("/actuator/health", "/actuator/health/**", "/livez", "/readz")
                         .permitAll()
                         .requestMatchers("/actuator/info", "/actuator/metrics", "/actuator/metrics/**", "/actuator/prometheus")
                         .hasRole("ADMIN")
