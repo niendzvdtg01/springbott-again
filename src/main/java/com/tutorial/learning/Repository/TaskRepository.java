@@ -11,7 +11,7 @@ import com.tutorial.learning.Enum.TaskStatus;
 
 
 public interface TaskRepository extends JpaRepository<TaskEntity, Long>{
-    Optional<TaskEntity> findByIdAndOwnerId(long id, long userid);
+    Optional<TaskEntity> findByIdAndOwnerId(long id, long userId);
     Page<TaskEntity> findAllByOwnerId(long id, Pageable pageable);
     Page<TaskEntity> findAllByOwnerIdAndStatus(long userId, TaskStatus status, Pageable pageable);
 } 

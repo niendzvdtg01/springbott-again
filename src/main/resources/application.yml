@@ -1,4 +1,15 @@
 spring:
+  cache:
+    type: redis
+    cache-names:
+    - tasksByOwner
+    redis:
+      time-to-live: 2m
+      cache-null-values: false
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
   flyway:
     enabled: true
     validate-migration-naming: true

@@ -2,11 +2,14 @@ package com.tutorial.learning.Service;
 
 import java.util.Objects;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.tutorial.learning.DTO.CreateTaskRequest;
 import com.tutorial.learning.DTO.PageResponse;
@@ -22,7 +25,7 @@ import com.tutorial.learning.exception.TaskNotFoundException;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
-import jakarta.transaction.Transactional;
+
 
 @Service
 public class TaskService {
@@ -47,12 +50,14 @@ public class TaskService {
         taskCreated.increment();
         return toResponse(saved);
     }
-    @Transactional
+    @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "tasksByOwner", key = "#userId + ':' + #id") 
     public TaskResponse findById(long id, long userId){
         TaskEntity task = taskRepository.findByIdAndOwnerId(id, userId).orElseThrow(()->new TaskNotFoundException(id));
         return toResponse(task);
     }   
     @Transactional 
+    @CacheEvict(cacheNames = "tasksByOwner", key = "#userId + ':' + #id")
     public TaskResponse updateTask(long id, UpdateTaskStatus request, long userId){
         TaskEntity task = taskRepository.findByIdAndOwnerId(id, userId).orElseThrow(()-> new TaskNotFoundException(id));
         if(!Objects.equals(task.getVersion(), request.version())){
@@ -76,6 +81,12 @@ public class TaskService {
         return PageResponse.from(responses); 
     }
 
+    @Transactional 
+    @CacheEvict(cacheNames = "tasksByOwner", key = "#userId + ':' + #id")
+    public void deleteById(long userId, int taskId){
+        TaskEntity task = taskRepository.findByIdAndOwnerId(taskId, userId).orElseThrow(()-> new TaskNotFoundException(taskId));
+        taskRepository.delete(task);
+    }
 
     private TaskResponse toResponse(TaskEntity taskEntity){
         return new TaskResponse(taskEntity.getId(), taskEntity.getTitle(), taskEntity.getStatus(), taskEntity.getVersion());

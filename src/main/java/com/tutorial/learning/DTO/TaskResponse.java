@@ -1,5 +1,7 @@
 package com.tutorial.learning.DTO;
 
+import java.io.Serializable;
+
 import com.tutorial.learning.Enum.TaskStatus;
 
 /**
@@ -10,4 +12,4 @@ import com.tutorial.learning.Enum.TaskStatus;
     String title, 
     TaskStatus status,
     long version
- ) {}
+ ) implements Serializable{}
