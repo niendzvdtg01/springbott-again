@@ -1,8 +1,11 @@
+server:
+  port: 8085
+
 spring:
   cache:
     type: redis
     cache-names:
-    - tasksByOwner
+      - tasksByOwner
     redis:
       time-to-live: 2m
       cache-null-values: false
@@ -14,9 +17,9 @@ spring:
     enabled: true
     validate-migration-naming: true
   datasource:
-    url: ${DB_URL} 
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: ${DB_URL:jdbc:mysql://localhost:3307/student_managing?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:1234}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
@@ -36,10 +39,10 @@ management:
     web:
       exposure:
         include:
-        - health
-        - info
-        - metrics
-        - prometheus
+          - health
+          - info
+          - metrics
+          - prometheus
   endpoint:
     health:
       show-details: when-authorized
