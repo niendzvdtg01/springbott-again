@@ -28,17 +28,41 @@ services:
       retries: 5
       start_period: 30s
 
+  rabbitmq:
+    image: rabbitmq:4.3-management-alpine
+    restart: unless-stopped
+
+    environment:
+      - RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+
+    ports:
+      - "127.0.0.1:15672:15672"
   backend:
     build: 
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
     environment:
+      #map to environment variable to application
       DB_URL: ${DB_URL}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
+      #set redis host and port to application
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
+      #set rabbit_mq username and password, mapping env variable to application
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASS}
     
     ports:
       - "8080:8080"

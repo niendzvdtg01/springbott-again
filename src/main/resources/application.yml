@@ -10,6 +10,11 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+  rabbitmq:
+      host: ${RABBITMQ_HOST:localhost}
+      port: ${RABBITMQ_PORT:5672}
+      username: ${RABBITMQ_USER}
+      password: ${RABBITMQ_PASS}
   flyway:
     enabled: true
     validate-migration-naming: true

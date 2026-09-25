@@ -1,9 +1,12 @@
 package com.tutorial.learning.Service;
 
+import java.time.Instant;
 import java.util.Objects;
+import java.util.UUID;
 
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tutorial.learning.DTO.CreateTaskRequest;
 import com.tutorial.learning.DTO.PageResponse;
 import com.tutorial.learning.DTO.TaskResponse;
+import com.tutorial.learning.DTO.TaskStatusChangedEvent;
 import com.tutorial.learning.DTO.UpdateTaskStatus;
 import com.tutorial.learning.Entity.TaskEntity;
 import com.tutorial.learning.Entity.UserEntity;
@@ -31,10 +35,12 @@ import io.micrometer.core.instrument.MeterRegistry;
 public class TaskService {
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
     private final Counter taskCreated;
-    public TaskService(TaskRepository taskRepository, UserRepository userRepository, MeterRegistry meterRegistry){
+    public TaskService(TaskRepository taskRepository, UserRepository userRepository, MeterRegistry meterRegistry, ApplicationEventPublisher eventPublisher){
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
+        this.eventPublisher = eventPublisher;
         this.taskCreated = Counter.builder("taskflow.tasks.created").description("Number of tasks created").register(meterRegistry);
     }
     public TaskResponse create(CreateTaskRequest createTaskRequest, Long userId){
@@ -64,7 +70,9 @@ public class TaskService {
             throw new StaleTaskVerionsException(id, request.version(), task.getVersion());
         }
         task.changeStatusTo(request.status());
+        TaskStatus previousSatusVersion = task.getStatus();
         taskRepository.flush();
+        eventPublisher.publishEvent(new TaskStatusChangedEvent(UUID.randomUUID(), id, userId, previousSatusVersion.name(), task.getStatus().name(), task.getVersion(), Instant.now()));
         return toResponse(task);
     }
     @Transactional 
