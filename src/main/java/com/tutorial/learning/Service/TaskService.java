@@ -72,7 +72,7 @@ public class TaskService {
         task.changeStatusTo(request.status());
         TaskStatus previousSatusVersion = task.getStatus();
         taskRepository.flush();
-        eventPublisher.publishEvent(new TaskStatusChangedEvent(UUID.randomUUID(), id, userId, previousSatusVersion.name(), task.getStatus().name(), task.getVersion(), Instant.now()));
+        eventPublisher.publishEvent(new TaskStatusChangedEvent(UUID.randomUUID().toString(), id, userId, previousSatusVersion.name(), task.getStatus().name(), task.getVersion(), Instant.now()));
         return toResponse(task);
     }
     @Transactional 
