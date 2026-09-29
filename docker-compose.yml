@@ -35,8 +35,8 @@ services:
     restart: unless-stopped
 
     environment:
-      - RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
-      - RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
 
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
@@ -47,6 +47,7 @@ services:
 
     ports:
       - "127.0.0.1:15672:15672"
+      - "5672:5672"
   backend:
     build: 
       context: .
