@@ -1,5 +1,7 @@
 package com.tutorial.learning.Entity;
 
+import java.time.Instant;
+
 import com.tutorial.learning.Enum.OutboxStatus;
 
 import jakarta.persistence.Column;
@@ -12,10 +14,10 @@ import jakarta.persistence.Table;
 /**
  * OutboxEventsEntity
  */
-@Entity 
-@Table(name = "outbox_events") 
+@Entity
+@Table(name = "outbox_events")
 public class OutboxEventsEntity {
-    @Id 
+    @Id
     @Column(length = 36)
     private String id;
     @Column(nullable = false)
@@ -27,11 +29,21 @@ public class OutboxEventsEntity {
     @Column(nullable = false)
     private String routingKey;
     @Column(nullable = false, columnDefinition = "json")
-    private  String payload;
+    private String payload;
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)   
+    @Column(nullable = false)
     private OutboxStatus status;
-    
+    @Column(nullable = false)
+    private int attemps;
+    @Column(nullable = false)
+    private Instant createdAt;
+    @Column(nullable = false)
+    private Instant publishAt;
 
-    
+    @Column(length = 1000)
+    private String lastError;
+
+    protected OutboxEventsEntity() {
+
+    }
 }
