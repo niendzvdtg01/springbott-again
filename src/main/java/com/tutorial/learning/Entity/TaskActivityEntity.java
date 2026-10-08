@@ -1,7 +1,6 @@
 package com.tutorial.learning.Entity;
 
 import java.time.Instant;
-import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -15,14 +14,13 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
-
-@Getter 
-@Setter 
-@Entity 
+@Getter
+@Setter
+@Entity
 @Table(name = "task_activity")
 public class TaskActivityEntity {
 
-    @Id 
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     @Column(name = "event_id", unique = true)

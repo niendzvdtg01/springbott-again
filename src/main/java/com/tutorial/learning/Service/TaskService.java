@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,74 +31,88 @@ import com.tutorial.learning.exception.TaskNotFoundException;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 
-
 @Service
 public class TaskService {
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final Counter taskCreated;
-    public TaskService(TaskRepository taskRepository, UserRepository userRepository, MeterRegistry meterRegistry, ApplicationEventPublisher eventPublisher){
+
+    public TaskService(TaskRepository taskRepository, UserRepository userRepository, MeterRegistry meterRegistry,
+            ApplicationEventPublisher eventPublisher) {
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
         this.eventPublisher = eventPublisher;
-        this.taskCreated = Counter.builder("taskflow.tasks.created").description("Number of tasks created").register(meterRegistry);
+        this.taskCreated = Counter.builder("taskflow.tasks.created").description("Number of tasks created")
+                .register(meterRegistry);
     }
-    public TaskResponse create(CreateTaskRequest createTaskRequest, Long userId){
 
-        UserEntity user = userRepository.findById(userId).orElseThrow(() -> new IllegalStateException("Authenticated no longer exist!"));
+    public TaskResponse create(CreateTaskRequest createTaskRequest, Long userId) {
+
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalStateException("Authenticated no longer exist!"));
         TaskEntity task = new TaskEntity(
-            createTaskRequest.title(),
-            createTaskRequest.description().trim(),
-            TaskStatus.TODO,
-            user
-        );
+                createTaskRequest.title(),
+                createTaskRequest.description().trim(),
+                TaskStatus.TODO,
+                user);
         TaskEntity saved = taskRepository.save(task);
         taskCreated.increment();
         return toResponse(saved);
     }
+
     @Transactional(readOnly = true)
-    @Cacheable(cacheNames = "tasksByOwner", key = "#userId + ':' + #id") 
-    public TaskResponse findById(long id, long userId){
-        TaskEntity task = taskRepository.findByIdAndOwnerId(id, userId).orElseThrow(()->new TaskNotFoundException(id));
+    @Cacheable(cacheNames = "tasksByOwner", key = "#userId + ':' + #id")
+    public TaskResponse findById(long id, long userId) {
+        TaskEntity task = taskRepository.findByIdAndOwnerId(id, userId)
+                .orElseThrow(() -> new TaskNotFoundException(id));
         return toResponse(task);
-    }   
-    @Transactional 
+    }
+
+    @Transactional
     @CacheEvict(cacheNames = "tasksByOwner", key = "#userId + ':' + #id")
-    public TaskResponse updateTask(long id, UpdateTaskStatus request, long userId){
-        TaskEntity task = taskRepository.findByIdAndOwnerId(id, userId).orElseThrow(()-> new TaskNotFoundException(id));
-        if(!Objects.equals(task.getVersion(), request.version())){
+    public TaskResponse updateTask(long id, UpdateTaskStatus request, long userId) {
+        TaskEntity task = taskRepository.findByIdAndOwnerId(id, userId)
+                .orElseThrow(() -> new TaskNotFoundException(id));
+        // get user
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found!!"));
+        if (!Objects.equals(task.getVersion(), request.version())) {
             throw new StaleTaskVerionsException(id, request.version(), task.getVersion());
         }
         task.changeStatusTo(request.status());
         TaskStatus previousSatusVersion = task.getStatus();
         taskRepository.flush();
-        eventPublisher.publishEvent(new TaskStatusChangedEvent(UUID.randomUUID().toString(), id, userId, previousSatusVersion.name(), task.getStatus().name(), task.getVersion(), Instant.now()));
+        eventPublisher.publishEvent(new TaskStatusChangedEvent(UUID.randomUUID().toString(), task, user,
+                previousSatusVersion.name(), task.getStatus().name(), task.getVersion(), Instant.now()));
         return toResponse(task);
     }
-    @Transactional 
-    public PageResponse<TaskResponse> findAll(long userId, TaskStatus status, int page, int size){
+
+    @Transactional
+    public PageResponse<TaskResponse> findAll(long userId, TaskStatus status, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Order.desc("id")));
         Page<TaskEntity> tasks;
-        if(status == null){
+        if (status == null) {
             tasks = taskRepository.findAllByOwnerId(userId, pageable);
-        }else{
+        } else {
             tasks = taskRepository.findAllByOwnerIdAndStatus(userId, status, pageable);
         }
 
         Page<TaskResponse> responses = tasks.map(this::toResponse);
-        return PageResponse.from(responses); 
+        return PageResponse.from(responses);
     }
 
-    @Transactional 
+    @Transactional
     @CacheEvict(cacheNames = "tasksByOwner", key = "#userId + ':' + #id")
-    public void deleteById(long userId, int taskId){
-        TaskEntity task = taskRepository.findByIdAndOwnerId(taskId, userId).orElseThrow(()-> new TaskNotFoundException(taskId));
+    public void deleteById(long userId, int taskId) {
+        TaskEntity task = taskRepository.findByIdAndOwnerId(taskId, userId)
+                .orElseThrow(() -> new TaskNotFoundException(taskId));
         taskRepository.delete(task);
     }
 
-    private TaskResponse toResponse(TaskEntity taskEntity){
-        return new TaskResponse(taskEntity.getId(), taskEntity.getTitle(), taskEntity.getStatus(), taskEntity.getVersion());
+    private TaskResponse toResponse(TaskEntity taskEntity) {
+        return new TaskResponse(taskEntity.getId(), taskEntity.getTitle(), taskEntity.getStatus(),
+                taskEntity.getVersion());
     }
 
 }
