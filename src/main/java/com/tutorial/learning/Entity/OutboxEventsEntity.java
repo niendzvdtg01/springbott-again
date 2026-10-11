@@ -46,4 +46,20 @@ public class OutboxEventsEntity {
     protected OutboxEventsEntity() {
 
     }
+
+    public OutboxEventsEntity(String id, String aggregateType, String eventType, String exchangeName, String routingKey,
+            String payload, OutboxStatus status, int attemps, Instant createdAt, Instant publishAt, String lastError) {
+        this.id = id;
+        this.aggregateType = aggregateType;
+        this.eventType = eventType;
+        this.exchangeName = exchangeName;
+        this.routingKey = routingKey;
+        this.payload = payload;
+        this.status = status;
+        this.attemps = attemps;
+        this.createdAt = createdAt;
+        this.publishAt = publishAt;
+        this.lastError = lastError;
+    }
+
 }
