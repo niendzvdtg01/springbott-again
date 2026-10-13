@@ -6,7 +6,7 @@ import java.util.UUID;
 
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.OutBoxWriter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -27,7 +27,7 @@ import com.tutorial.learning.Repository.TaskRepository;
 import com.tutorial.learning.Repository.UserRepository;
 import com.tutorial.learning.exception.StaleTaskVerionsException;
 import com.tutorial.learning.exception.TaskNotFoundException;
-
+import com.tutorial.learning.RabbitMq.OutBoxWriter;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 
@@ -35,11 +35,11 @@ import io.micrometer.core.instrument.MeterRegistry;
 public class TaskService {
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
-    private final ApplicationEventPublisher eventPublisher;
+    private final OutBoxWriter eventPublisher;
     private final Counter taskCreated;
 
     public TaskService(TaskRepository taskRepository, UserRepository userRepository, MeterRegistry meterRegistry,
-            ApplicationEventPublisher eventPublisher) {
+            OutBoxWriter eventPublisher) {
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
         this.eventPublisher = eventPublisher;
@@ -83,8 +83,9 @@ public class TaskService {
         task.changeStatusTo(request.status());
         TaskStatus previousSatusVersion = task.getStatus();
         taskRepository.flush();
-        eventPublisher.publishEvent(new TaskStatusChangedEvent(UUID.randomUUID().toString(), task, user,
-                previousSatusVersion.name(), task.getStatus().name(), task.getVersion(), Instant.now()));
+        TaskStatusChangedEvent event = new TaskStatusChangedEvent(UUID.randomUUID().toString(), task, user,
+                previousSatusVersion.name(), task.getStatus().name(), task.getVersion(), Instant.now());
+        eventPublisher.append(event);
         return toResponse(task);
     }
 
