@@ -2,9 +2,14 @@ package com.tutorial.learning.DTO;
 
 import java.time.Instant;
 
-import com.tutorial.learning.Entity.TaskEntity;
-import com.tutorial.learning.Entity.UserEntity;
+import com.tutorial.learning.Enum.TaskStatus;
 
-public record TaskStatusChangedEvent(String eventId, TaskEntity taskId, UserEntity ownerId, String previousStatus,
-                String currentSatus, long taskVersion, Instant occurAt) {
+public record TaskStatusChangedEvent(
+        String eventId,
+        Long taskId,
+        Long ownerId,
+        TaskStatus previousStatus,
+        TaskStatus currentStatus,
+        long taskVersion,
+        Instant occurAt) {
 }

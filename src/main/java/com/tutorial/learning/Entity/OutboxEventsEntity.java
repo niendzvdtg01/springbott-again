@@ -10,37 +10,43 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * OutboxEventsEntity
  */
+@Getter
+@Setter
 @Entity
 @Table(name = "outbox_events")
 public class OutboxEventsEntity {
     @Id
-    @Column(length = 36)
+    @Column(name = "id", length = 36)
     private String id;
-    @Column(nullable = false)
+    @Column(name = "aggregate_type", nullable = false)
     private String aggregateType;
-    @Column(nullable = false)
+    @Column(name = "aggregate_id", nullable = false)
+    private long aggregateId;
+    @Column(name = "event_type", nullable = false)
     private String eventType;
-    @Column(nullable = false)
+    @Column(name = "exchange_name", nullable = false)
     private String exchangeName;
-    @Column(nullable = false)
+    @Column(name = "routing_key", nullable = false)
     private String routingKey;
-    @Column(nullable = false, columnDefinition = "json")
+    @Column(name = "payload", nullable = false, columnDefinition = "json")
     private String payload;
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "status", nullable = false)
     private OutboxStatus status;
-    @Column(nullable = false)
+    @Column(name = "attempts", nullable = false)
     private int attemps;
-    @Column(nullable = false)
+    @Column(name = "created_at", nullable = false)
     private Instant createdAt;
-    @Column(nullable = false)
+    @Column(name = "published_at", nullable = false)
     private Instant publishAt;
 
-    @Column(length = 1000)
+    @Column(name = "last_error", length = 1000)
     private String lastError;
 
     protected OutboxEventsEntity() {
