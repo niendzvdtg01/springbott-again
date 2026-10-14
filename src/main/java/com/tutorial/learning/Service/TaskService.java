@@ -10,7 +10,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -74,15 +73,13 @@ public class TaskService {
         TaskEntity task = taskRepository.findByIdAndOwnerId(id, userId)
                 .orElseThrow(() -> new TaskNotFoundException(id));
         // get user
-        UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found!!"));
         if (!Objects.equals(task.getVersion(), request.version())) {
             throw new StaleTaskVerionsException(id, request.version(), task.getVersion());
         }
         task.changeStatusTo(request.status());
         TaskStatus previousSatusVersion = task.getStatus();
         taskRepository.flush();
-        TaskStatusChangedEvent event = new TaskStatusChangedEvent(UUID.randomUUID().toString(), task, user,
+        TaskStatusChangedEvent event = new TaskStatusChangedEvent(UUID.randomUUID().toString(), task.getId(), userId,
                 previousSatusVersion.name(), task.getStatus().name(), task.getVersion(), Instant.now());
         eventPublisher.append(event);
         return toResponse(task);

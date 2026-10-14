@@ -36,7 +36,8 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers("/actuator/health", "/actuator/health/**", "/livez", "/readz")
                         .permitAll()
-                        .requestMatchers("/actuator/info", "/actuator/metrics", "/actuator/metrics/**", "/actuator/prometheus")
+                        .requestMatchers("/actuator/info", "/actuator/metrics", "/actuator/metrics/**",
+                                "/actuator/prometheus")
                         .hasRole("ADMIN")
                         .anyRequest()
                         .authenticated())
@@ -48,7 +49,7 @@ public class SecurityConfig {
                         .logoutSuccessHandler((request, response, authentication) -> {
                             Cookie cookie = new Cookie("access_cookie", null);
                             cookie.setHttpOnly(true);
-                            cookie.setSecure(false); 
+                            cookie.setSecure(false);
                             cookie.setPath("/");
                             cookie.setMaxAge(0);
                             response.addCookie(cookie);

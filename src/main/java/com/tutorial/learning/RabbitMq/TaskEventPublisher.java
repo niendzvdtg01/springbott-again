@@ -25,6 +25,7 @@ public class TaskEventPublisher {
     public void publish() {
         List<OutboxEventsEntity> events = outboxRepository
                 .findTop50ByStatusOrderByCreatedAtAsc(OutboxStatus.PENDING);
+        System.out.println(OutboxStatus.PENDING.toString());
         for (OutboxEventsEntity event : events) {
             try {
                 rabbitTemplate.convertAndSend(RabbitMqConfig.TASK_EXCHANGE, RabbitMqConfig.ROUTING_KEY,
