@@ -39,13 +39,14 @@ public class TaskConsumer {
             TaskEntity taskEntity = taskRepository.findById(event.taskId())
                     .orElseThrow(() -> new TaskNotFoundException(event.taskId()));
 
-            UserEntity userEntity = userRepository.findById()
+            UserEntity userEntity = userRepository.findById(event.ownerId())
+                    .orElseThrow(() -> new IllegalStateException("User not found with id: " + event.ownerId()));
 
             task.setEventId(event.eventId());
             task.setTaskId(taskEntity);
-            task.setOwner(event.ownerId());
+            task.setOwner(userEntity);
             task.setPreviousStatus(event.previousStatus());
-            task.setCurrentStatus(event.currentSatus());
+            task.setCurrentStatus(event.currentStatus());
             task.setTaskVersion(event.taskVersion());
             task.setOccuredAt(event.occurAt());
             task.setProcessedAt(Instant.now());
