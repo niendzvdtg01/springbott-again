@@ -16,21 +16,26 @@ import com.tutorial.learning.Repository.TaskRepository;
 import com.tutorial.learning.Repository.UserRepository;
 import com.tutorial.learning.exception.TaskNotFoundException;
 
+import tools.jackson.databind.ObjectMapper;
+
 @Component
 public class TaskConsumer {
     private final TaskActivityRepository taskActivityRepository;
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
+    private final ObjectMapper objectMapper;
 
     public TaskConsumer(TaskActivityRepository taskActivityRepository, TaskRepository taskRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository, ObjectMapper objectMapper) {
         this.taskActivityRepository = taskActivityRepository;
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
+        this.objectMapper = objectMapper;
     }
 
     @RabbitListener(queues = RabbitMqConfig.ACTIVITY_QUEUE)
-    public void handle(TaskStatusChangedEvent event) {
+    public void handle(String message) {
+        TaskStatusChangedEvent event = objectMapper.readValue(message, TaskStatusChangedEvent.class);
         if (taskActivityRepository.existsByEventId(event.eventId())) {
             return;
         }
@@ -40,7 +45,7 @@ public class TaskConsumer {
                     .orElseThrow(() -> new TaskNotFoundException(event.taskId()));
 
             UserEntity userEntity = userRepository.findById(event.ownerId())
-                    .orElseThrow(() -> new IllegalStateException("User not found with id: " + event.ownerId()));
+                    .orElseThrow(() -> new IllegalStateException("User not found exception!"));
 
             task.setEventId(event.eventId());
             task.setTaskId(taskEntity);
